@@ -90,11 +90,11 @@ class StoryList {
    * Remove story from storyList and user favorites by filtering out all stories with Id's that match the passed in storyID
    */
   async deleteStory(user, storyId) {
-    // await axios({
-    //   url: `${BASE_URL}/stories/${storyId}`,
-    //   method: "DELETE",
-    //   data: { token: user.loginToken },
-    // });
+    await axios({
+      url: `${BASE_URL}/stories/${storyId}`,
+      method: "DELETE",
+      data: { token: user.loginToken },
+    });
 
     this.stories = this.stories.filter((s) => s.storyId !== storyId);
     user.favorites = user.favorites.filter((s) => s.storyId !== storyId);
