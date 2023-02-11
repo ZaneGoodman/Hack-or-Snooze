@@ -72,22 +72,26 @@ class StoryList {
    * Returns the new Story instance
    */
 
-  async addStory(user, newStory) {
-    const response = await axios({
-      url: `${BASE_URL}/stories`,
-      method: "GET",
+  async addStory(user, { title, author, url }) {
+    const token = user.loginToken;
+    console.log(token);
+
+    const res = await axios({
+      url: `${BASE_URL}/stories/`,
+      method: "POST",
+      data: { token, story: { title, author, url } },
     });
-    // save newStory data to API stories array and set the newStory username to the passed in users username
-    newStory.username = user.username;
-    response.data.stories.push(newStory);
-    // make a new story instance and add it to the story list. then return the new story instance
-    const newStories = new Story(newStory);
-    storyList.stories.push(newStories);
-    return newStories;
+
+    const newStory = new Story(res.data.story);
+    console.log(newStory);
+    storyList.stories.push(newStory);
+    user.ownStories.push(newStory);
+    return newStory;
   }
 
   /**
-   * Remove story from storyList and user favorites by filtering out all stories with Id's that match the passed in storyID
+   * Remove story from OwnStories list/user favorites/StoryList by filtering out all stories with Id's that match the passed in storyID
+   * Update API
    */
   async deleteStory(user, storyId) {
     await axios({
@@ -98,6 +102,7 @@ class StoryList {
 
     this.stories = this.stories.filter((s) => s.storyId !== storyId);
     user.favorites = user.favorites.filter((s) => s.storyId !== storyId);
+    user.ownStories = user.ownStories.filter((s) => s.storyId !== storyId);
   }
 }
 
@@ -208,13 +213,6 @@ class User {
     } catch (err) {
       console.error("loginViaStoredCredentials failed", err);
       return null;
-    }
-  }
-  static async removeFavoriteStories(story) {
-    for (let fav of $favoriteStoryList) {
-      console.log();
-      if (fav.getAttribute("id") === story[0].getAttribute("id")) {
-      }
     }
   }
 

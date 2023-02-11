@@ -21,3 +21,12 @@ nav {
   margin-left: auto;
   text-align: right;
 }
+
+.nav-link-user {
+  font-size: 0.65rem;
+  margin: 0 3px;
+  border: solid #53514d 1px;
+  border-radius: 2px;
+  background-color: grey;
+  
+}

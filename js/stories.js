@@ -16,9 +16,11 @@ async function getAndShowStoriesOnStart() {
  * - story: an instance of Story
  *
  * Returns the markup for the story.
+ *
+ * showDeletebtn allows for the specification of which stories will have a trash can icon
  */
 
-function generateStoryMarkup(story) {
+function generateStoryMarkup(story, showDeleteBtn = false) {
   // console.debug("generateStoryMarkup", story);
 
   const hostName = story.getHostName();
@@ -32,7 +34,7 @@ function generateStoryMarkup(story) {
         <a href="${story.url}" target="a_blank" class="story-link">
           ${story.title}
         </a>
-        ${deleteBtnHTML()}
+        ${showDeleteBtn ? deleteBtnHTML() : ""}
          <small class="story-hostname">(${hostName})</small>
         <small class="story-author">by ${story.author}</small>
         <small class="story-user">posted by ${story.username}</small>
@@ -40,7 +42,11 @@ function generateStoryMarkup(story) {
       </li>
     `);
 }
-
+/**
+ * StarHTML checks if the passed in story is in users fav list using model.js func
+ *    -change class of HTML <i> element based on favorite status
+ *    -return HTML
+ */
 function starHTML(story, user) {
   const isFavorite = user.isFav(story);
   const starClass = isFavorite ? "gold" : "grey";
@@ -51,6 +57,9 @@ function starHTML(story, user) {
   </span>`;
 }
 
+/**
+ * returns html to be inserted in story li's to delete stories
+ */
 function deleteBtnHTML() {
   return `
   <span class="trash-can">
@@ -70,6 +79,7 @@ async function deleteStory(evt) {
 
   await storyList.deleteStory(currentUser, trashCanLiId);
   putStoriesOnPage();
+  putOwnStoriesOnPage();
 }
 
 $allStories.on("click", ".trash-can", deleteStory);
@@ -95,23 +105,41 @@ function putStoriesOnPage() {
  * Using user inputs create new story with model.js "addStory" func
  * Create HTML & append
  */
+
 async function appendNewUserStory() {
   const $title = $("#title").val();
   const $author = $("#author").val();
   const $url = $("#url").val();
 
-  const newStoryInfo = await storyList.addStory(currentUser, {
+  const storyData = await storyList.addStory(currentUser, {
     title: $title,
     author: $author,
     url: $url,
   });
-
-  const newStory = generateStoryMarkup(newStoryInfo);
-  $allStoriesList.prepend(newStory);
+  const story = generateStoryMarkup(storyData);
+  $allStoriesList.prepend(story);
   $newStoryForm.hide();
 }
 
 $newStoryForm.on("submit", appendNewUserStory);
+
+/**
+ * Put Users stories on the "my stories" ordered list by:
+ *    - looping through currentUser.ownStories
+ *    - GenerateStoryMarkup with story data
+ *    - Show the delete icon
+ */
+function putOwnStoriesOnPage() {
+  $ownStories.empty();
+
+  for (let story of currentUser.ownStories) {
+    const $story = generateStoryMarkup(story, (showDeleteBtn = true));
+
+    $ownStories.append($story);
+  }
+
+  $ownStories.show();
+}
 
 /**
  * Empty favorites list
@@ -119,8 +147,6 @@ $newStoryForm.on("submit", appendNewUserStory);
  * Show the list
  */
 function putFavStoriesOnPage() {
-  console.debug("putStoriesOnPage");
-
   $favoriteStories.empty();
 
   for (let story of currentUser.favorites) {

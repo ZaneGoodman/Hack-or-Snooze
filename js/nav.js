@@ -52,3 +52,13 @@ function navShowFavoriteList() {
 }
 
 $navFavorites.on("click", navShowFavoriteList);
+
+/**
+ * On click of "my stories" navLink hide everything and populate current list of Users own stories
+ */
+function navShowOwnStories() {
+  hidePageComponents();
+  putOwnStoriesOnPage();
+}
+
+$navOwnStories.on("click", navShowOwnStories);
